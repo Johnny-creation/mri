@@ -17,7 +17,10 @@ def main():
     parser.add_argument('--weight_decay', type=float, default=0, help='Weight decay')
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
     parser.add_argument('--time_loss_weight', type=float, default=1.0, help='Weight for time classification loss')
-    
+    parser.add_argument('--use_snn_head', action='store_true', help='Enable spiking (LIF) readout head')
+    parser.add_argument('--T', type=int, default=10, help='Number of timesteps for LIF readout')
+    parser.add_argument('--beta', type=float, default=0.9, help='Leak factor (beta) for LIF neuron')
+
     args = parser.parse_args()
     
     set_seed(args.seed)
@@ -30,7 +33,13 @@ def main():
         train_loader, val_loader, test_loader = get_multitask_loaders(args.base_path, args.batch_size)
         
         print("Initializing multi-task model...")
-        model = MultiTaskModel(dropout_rate=args.dropout_rate).to(device)
+        # model = MultiTaskModel(dropout_rate=args.dropout_rate).to(device)
+        model = MultiTaskModel(
+            dropout_rate=args.dropout_rate,
+            use_snn_head=args.use_snn_head,
+            T=args.T,
+            beta=args.beta
+        ).to(device)
         
         print("\nStarting multi-task training...")
         log_filename, final_model_path, best_model_path, val_metrics = train_multitask(

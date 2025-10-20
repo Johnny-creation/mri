@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
 from torchvision import models
+import snntorch as snn
+from snntorch import surrogate
+
 
 class SEBlock(nn.Module):
     def __init__(self, channel, reduction=16):
@@ -83,10 +86,17 @@ class EfficientNetB0_2Channel_Fusion(nn.Module):
         return x
 
 class MultiTaskModel(nn.Module):
-    def __init__(self, dropout_rate=0.3):
+    def __init__(self, dropout_rate=0.3, use_snn_head=False, T=10, beta=0.9):
         super(MultiTaskModel, self).__init__()
         self.base_model = EfficientNetB0_2Channel_Fusion()
         num_features = 256
+        self.use_snn_head = use_snn_head
+        self.T = T
+        if self.use_snn_head:
+            # LIF 脉冲单元，使用替代梯度以支持反传
+            spike_grad = surrogate.fast_sigmoid()
+            self.lif = snn.Leaky(beta=beta, spike_grad=spike_grad, learn_beta=False)
+            
         
         self.lesion_head = nn.Sequential(
             nn.Linear(num_features, 64),
@@ -127,9 +137,25 @@ class MultiTaskModel(nn.Module):
         features = self.base_model.spatial_attn(features)
         features = self.base_model.dropblock(features)
         
-        features = nn.functional.adaptive_avg_pool2d(features, 1).flatten(1)
+        # features = nn.functional.adaptive_avg_pool2d(features, 1).flatten(1)
         
-        lesion_out = self.lesion_head(features)
-        time_out = self.time_head(features)
+        # lesion_out = self.lesion_head(features)
+        # time_out = self.time_head(features)
+
+        features = nn.functional.adaptive_avg_pool2d(features, 1).flatten(1)  # [B,256]
+
+        if self.use_snn_head:
+            # 在读出层进行 T 步脉冲积分放电
+            mem = self.lif.init_leaky()   # 初始化膜电位
+            spk_sum = 0
+            for _ in range(self.T):
+                spk, mem = self.lif(features, mem)  # spk: [B,256] 的0/1脉冲
+                spk_sum = spk_sum + spk
+            feats = spk_sum / float(self.T)         # 时间平均的脉冲率
+        else:
+            feats = features
+
+        lesion_out = self.lesion_head(feats)
+        time_out = self.time_head(feats)
         
         return lesion_out, time_out

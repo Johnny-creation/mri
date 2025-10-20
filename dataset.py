@@ -83,7 +83,7 @@ class MultiTaskDataset(Dataset):
             flair_tensor = torch.from_numpy(np.array(flair_img)).float() / 255.0
 
             img_tensor = torch.stack([dwi_tensor, flair_tensor], dim=0)
-            img_tensor = (img_tensor - 0.5) / 0.5
+            # img_tensor = (img_tensor - 0.5) / 0.5
 
             if self.transform:
                 img_tensor = self.transform(img_tensor)
