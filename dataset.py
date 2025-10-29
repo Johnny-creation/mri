@@ -5,6 +5,19 @@ import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 
+def custom_collate_fn(batch):
+    """
+    自定义 collate 函数，处理数据加载过程中可能出现的 None 值（样本加载失败）。
+    """
+    batch = list(filter(lambda x: x is not None, batch))
+    if len(batch) == 0:
+        return None
+    images = torch.stack([item[0] for item in batch])
+    lesion_labels = torch.stack([item[1] for item in batch])
+    time_labels = torch.stack([item[2] for item in batch])
+    filenames = [item[3] for item in batch]
+    return images, lesion_labels, time_labels, filenames
+
 class MultiTaskDataset(Dataset):
     def __init__(self, root_dir, transform=None):
         self.samples = []
@@ -95,22 +108,16 @@ class MultiTaskDataset(Dataset):
             return None
 
 def get_multitask_loaders(base_path, batch_size=16):
-    def collate_fn(batch):
-        batch = list(filter(lambda x: x is not None, batch))
-        if len(batch) == 0:
-            return None
-        images = torch.stack([item[0] for item in batch])
-        lesion_labels = torch.stack([item[1] for item in batch])
-        time_labels = torch.stack([item[2] for item in batch])
-        filenames = [item[3] for item in batch]
-        return images, lesion_labels, time_labels, filenames
-
     train_dataset = MultiTaskDataset(os.path.join(base_path, "train"))
     val_dataset = MultiTaskDataset(os.path.join(base_path, "val"))
     test_dataset = MultiTaskDataset(os.path.join(base_path, "test"))
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4, collate_fn=collate_fn)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4, collate_fn=collate_fn)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4, collate_fn=collate_fn)
+    # 使用全局的 custom_collate_fn
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4,
+                              collate_fn=custom_collate_fn)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4,
+                            collate_fn=custom_collate_fn)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4,
+                             collate_fn=custom_collate_fn)
 
     return train_loader, val_loader, test_loader
