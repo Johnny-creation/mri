@@ -239,7 +239,7 @@ class StrokeGradioInterface:
             # DWI图像
             ax1 = fig.add_subplot(1, 2, 1)
             ax1.imshow(dwi_display, cmap='gray')
-            ax1.set_title('DWI序列', fontsize=14, fontweight='bold', color='#2c3e50', pad=10)
+            ax1.set_title('DWI Sequence', fontsize=14, fontweight='bold', color='#2c3e50', pad=10)
             ax1.axis('off')
 
             # 添加边框
@@ -251,7 +251,7 @@ class StrokeGradioInterface:
             # FLAIR图像
             ax2 = fig.add_subplot(1, 2, 2)
             ax2.imshow(flair_display, cmap='gray')
-            ax2.set_title('FLAIR序列', fontsize=14, fontweight='bold', color='#2c3e50', pad=10)
+            ax2.set_title('FLAIR Sequence', fontsize=14, fontweight='bold', color='#2c3e50', pad=10)
             ax2.axis('off')
 
             # 添加边框
@@ -288,10 +288,10 @@ class StrokeGradioInterface:
 
         # 添加主标题和推理时间
         inference_time = results.get('inference_time', 0)
-        fig.text(0.5, 0.99, '中风损伤智能检测与时间分类系统',
+        fig.text(0.5, 0.99, 'Stroke Lesion Detection and Time Classification System',
                 ha='center', va='top', fontsize=25, fontweight='bold',
                 color='#2c3e50')
-        fig.text(0.5, 0.935, f'推理时间: {inference_time:.3f} 秒',
+        fig.text(0.5, 0.935, f'Inference Time: {inference_time:.3f} sec',
                 ha='center', va='top', fontsize=20, color="#495353")
 
         # 创建子图
@@ -300,7 +300,7 @@ class StrokeGradioInterface:
                          left=0.04, right=0.98)
 
         # 损伤检测结果
-        lesion_label = "检测到损伤" if results['lesion_pred'] == 1 else "未检测到损伤"
+        lesion_label = "Lesion Detected" if results['lesion_pred'] == 1 else "No Lesion Detected"
         lesion_color = '#e74c3c' if results['lesion_pred'] == 1 else '#27ae60'
         lesion_bg = '#fde8e8' if results['lesion_pred'] == 1 else '#e8f8f5'
 
@@ -310,7 +310,7 @@ class StrokeGradioInterface:
         # DWI图像 - 使用炫彩colormap
         ax1 = fig.add_subplot(gs[0, 0])
         im1 = ax1.imshow(dwi_display, cmap='viridis', interpolation='bilinear')
-        ax1.set_title('DWI序列', fontsize=14, fontweight='bold',
+        ax1.set_title('DWI Sequence', fontsize=14, fontweight='bold',
                      color='#2c3e50', pad=12,
                      bbox=dict(boxstyle='round,pad=0.5', facecolor='#ecf0f1', alpha=0.9))
         ax1.axis('off')
@@ -330,7 +330,7 @@ class StrokeGradioInterface:
         # FLAIR图像 - 使用plasma colormap
         ax2 = fig.add_subplot(gs[0, 1])
         im2 = ax2.imshow(flair_display, cmap='plasma', interpolation='bilinear')
-        ax2.set_title('FLAIR序列', fontsize=14, fontweight='bold',
+        ax2.set_title('FLAIR Sequence', fontsize=14, fontweight='bold',
                      color='#2c3e50', pad=12,
                      bbox=dict(boxstyle='round,pad=0.5', facecolor='#ecf0f1', alpha=0.9))
         ax2.axis('off')
@@ -360,7 +360,7 @@ class StrokeGradioInterface:
         ax3.add_patch(bg_rect)
 
         y_pos = 0.88
-        ax3.text(0.5, y_pos, '损伤检测', ha='center', va='top',
+        ax3.text(0.5, y_pos, 'Lesion Detection', ha='center', va='top',
                 fontsize=14, fontweight='bold', color='#2c3e50',
                 transform=ax3.transAxes)
 
@@ -376,7 +376,7 @@ class StrokeGradioInterface:
                 transform=ax3.transAxes)
 
         y_pos -= 0.14
-        ax3.text(0.5, y_pos - 0.04, f'置信度: {results["lesion_confidence"]:.1%}',
+        ax3.text(0.5, y_pos - 0.04, f'Confidence: {results["lesion_confidence"]:.1%}',
                 ha='center', va='center',
                 fontsize=11, color='#34495e', fontweight='bold',
                 transform=ax3.transAxes)
@@ -393,12 +393,12 @@ class StrokeGradioInterface:
                                    edgecolor='#dee2e6', linewidth=2.5)
             ax4.add_patch(bg_rect2)
 
-            time_stage = "晚期阶段\n(≥270 min)" if results['time_pred'] == 1 else "早期阶段\n(<270 min)"
+            time_stage = "Late Stage\n(≥270 min)" if results['time_pred'] == 1 else "Early Stage\n(<270 min)"
             time_color = '#e67e22' if results['time_pred'] == 1 else '#3498db'
             time_bg = '#fef5e7' if results['time_pred'] == 1 else '#ebf5fb'
 
             y_pos = 0.88
-            ax4.text(0.5, y_pos, '时间分类', ha='center', va='top',
+            ax4.text(0.5, y_pos, 'Time Classification', ha='center', va='top',
                     fontsize=14, fontweight='bold', color='#2c3e50',
                     transform=ax4.transAxes)
 
@@ -414,18 +414,18 @@ class StrokeGradioInterface:
                     transform=ax4.transAxes)
 
             y_pos -= 0.14
-            ax4.text(0.5, y_pos - 0.04, f'置信度: {results["time_confidence"]:.1%}',
+            ax4.text(0.5, y_pos - 0.04, f'Confidence: {results["time_confidence"]:.1%}',
                     ha='center', va='center',
                     fontsize=11, color='#34495e', fontweight='bold',
                     transform=ax4.transAxes)
 
         # 底部概率柱状图
-        labels = ['无损伤', '有损伤']
+        labels = ['No Lesion', 'Lesion']
         values = [1 - results['lesion_prob'], results['lesion_prob']]
         colors = ['#27ae60', '#e74c3c']
 
         ax5 = fig.add_subplot(gs[1, :2])
-        ax5.set_title('损伤检测概率分布', fontsize=13, fontweight='bold',
+        ax5.set_title('Lesion Detection Probability', fontsize=13, fontweight='bold',
                      color='#2c3e50', pad=10)
 
         x_pos = np.arange(len(labels))
@@ -447,7 +447,7 @@ class StrokeGradioInterface:
         ax5.set_ylim([0, 1.2])
         ax5.set_xticks(x_pos)
         ax5.set_xticklabels(labels, fontsize=12, fontweight='bold')
-        ax5.set_ylabel('概率', fontsize=11, fontweight='bold', color='#2c3e50')
+        ax5.set_ylabel('Probability', fontsize=11, fontweight='bold', color='#2c3e50')
         ax5.grid(axis='y', linestyle='--', alpha=0.35, linewidth=1.2)
         ax5.set_axisbelow(True)
         ax5.spines['top'].set_visible(False)
@@ -467,10 +467,10 @@ class StrokeGradioInterface:
         # 时间阶段概率柱状图
         if results['lesion_pred'] == 1:
             ax6 = fig.add_subplot(gs[1, 2:])
-            ax6.set_title('时间阶段概率分布', fontsize=13, fontweight='bold',
+            ax6.set_title('Time Stage Probability', fontsize=13, fontweight='bold',
                          color='#2c3e50', pad=10)
 
-            labels_time = ['早期阶段', '晚期阶段']
+            labels_time = ['Early Stage', 'Late Stage']
             values_time = [1 - results['time_prob'], results['time_prob']]
             colors_time = ['#3498db', '#e67e22']
 
@@ -493,7 +493,7 @@ class StrokeGradioInterface:
             ax6.set_ylim([0, 1.2])
             ax6.set_xticks(x_pos_time)
             ax6.set_xticklabels(labels_time, fontsize=12, fontweight='bold')
-            ax6.set_ylabel('概率', fontsize=11, fontweight='bold', color='#2c3e50')
+            ax6.set_ylabel('Probability', fontsize=11, fontweight='bold', color='#2c3e50')
             ax6.grid(axis='y', linestyle='--', alpha=0.35, linewidth=1.2)
             ax6.set_axisbelow(True)
             ax6.spines['top'].set_visible(False)
@@ -584,25 +584,25 @@ class StrokeGradioInterface:
             with gr.Row():
                 # 左侧：输入和预览
                 with gr.Column(scale=2, elem_classes=["left-col"]):
-                    gr.Markdown("### 📁 上传 DICOM 文件")
+                    gr.Markdown("### 📁 Upload DICOM Files")
                     dwi_input = gr.File(
-                        label="🔵 DWI 序列",
+                        label="🔵 DWI Sequence",
                         type="filepath",
                         file_types=[".dcm"]
                     )
                     flair_input = gr.File(
-                        label="🟠 FLAIR 序列",
+                        label="🟠 FLAIR Sequence",
                         type="filepath",
                         file_types=[".dcm"]
                     )
 
                     process_btn = gr.Button(
-                        "🚀 开始智能分析",
+                        "🚀 Start Analysis",
                         variant="primary",
                         size="lg"
                     )
 
-                    gr.Markdown("### 👁️ 图像预览")
+                    gr.Markdown("### 👁️ Image Preview")
                     preview_plot = gr.Plot(
                         label="",
                         elem_classes=["preview-plot"]
@@ -610,7 +610,7 @@ class StrokeGradioInterface:
 
                 # 右侧：分析结果
                 with gr.Column(scale=3, elem_classes=["right-col"]):
-                    gr.Markdown("### 📊 智能分析结果")
+                    gr.Markdown("### 📊 Analysis Results")
                     result_plot = gr.Plot(
                         label="",
                         elem_classes=["result-plot"]
@@ -640,11 +640,11 @@ class StrokeGradioInterface:
             <div style='margin-top: 20px; padding: 15px; text-align: center;
                         background-color: rgba(255,255,255,0.8); border-radius: 10px;'>
                 <p style='color: #7f8c8d; margin: 3px 0; font-size: 0.95em;'>
-                    <strong>⚕️ 医学影像AI分析平台</strong> |
-                    采用先进的深度学习技术 | 准确、快速、可靠
+                    <strong>⚕️ Medical Imaging AI Analysis Platform</strong> |
+                    Advanced Deep Learning Technology | Accurate · Fast · Reliable
                 </p>
                 <p style='color: #95a5a6; font-size: 0.85em; margin: 3px 0;'>
-                    © 2025 中风MRI智能分析系统 | 仅供研究使用
+                    © 2025 Stroke MRI Intelligent Analysis System | For Research Use Only
                 </p>
             </div>
             """)
@@ -660,4 +660,4 @@ if __name__ == "__main__":
     interface.queue()
 
     # 启动界面（本地访问，如需公开链接可设置share=True）
-    interface.launch(share=False, debug=False, server_name="127.0.0.1", server_port=7860)
+    interface.launch(share=False, debug=False, server_name="127.0.0.1", server_port=7861)

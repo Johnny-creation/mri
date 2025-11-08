@@ -15,24 +15,86 @@ The system leverages EfficientNet-B0 as a feature extraction backbone, enhanced 
 
 ```bash
 # Install dependencies
-pip install torch torchvision pydicom numpy pillow scikit-learn matplotlib
+pip install torch torchvision pydicom numpy pillow scikit-learn matplotlib gradio
 
 # Train a model
 python main.py --epochs 70 --batch_size 32
 
-# Run inference on a single slice
+# Launch Web UI (Recommended)
+python gradio_interface.py
+
+# Run inference on a single slice (CLI)
 python inference.py \
     --model_path output/model_best.pt \
     --mode slice \
     --dwi /path/to/dwi.dcm \
     --flair /path/to/flair.dcm
 
-# Run inference on a full case
+# Run inference on a full case (CLI)
 python inference.py \
     --model_path output/model_best.pt \
     --mode case \
     --case_dir /path/to/case_dir
 ```
+
+## 🎨 Web Interface
+
+![Web UI](figs/UI.png)
+
+The system includes a beautiful web-based interface built with Gradio for easy interaction:
+
+### Features
+- **Real-time Image Preview**: Automatically displays uploaded DICOM files
+- **Dual-Modality Upload**: Support for DWI and FLAIR sequences
+- **Interactive Visualization**: Beautiful charts with viridis and plasma colormaps
+- **Detailed Results**:
+  - Lesion detection with confidence scores
+  - Time classification (Early/Late stage)
+  - Probability distributions as bar charts
+  - Inference time display
+
+### Local Access
+
+```bash
+# Start the web interface
+python gradio_interface.py
+
+# Access at: http://127.0.0.1:7861
+```
+
+### Public Access via Cloudflare Tunnel
+
+To share the interface publicly or access from remote locations, use Cloudflare Tunnel:
+
+**Linux/macOS:**
+```bash
+# Start the app in background
+nohup python gradio_interface.py > app.log 2>&1 &
+
+# Create a public tunnel
+./cloudflare/cloudflared-linux-amd64 tunnel --url http://127.0.0.1:7861 &
+```
+
+**Windows:**
+```bash
+# Start the app in background
+Start-Process -NoNewWindow -FilePath "python" -ArgumentList "gradio_interface.py"
+
+# Create a public tunnel
+./cloudflare/cloudflared-windows-amd64.exe tunnel --url http://127.0.0.1:7861
+```
+
+The tunnel will provide a public URL (e.g., `https://random-name.trycloudflare.com`) that can be accessed from anywhere.
+
+### Web UI Usage
+
+1. **Upload DICOM Files**: Click to upload DWI and FLAIR sequence files
+2. **Preview**: Images are automatically displayed after upload
+3. **Analyze**: Click "🚀 Start Analysis" button
+4. **Review Results**:
+   - View colorful visualizations with detection results
+   - Check confidence scores and probabilities
+   - See inference time
 
 ## Key Features
 
@@ -139,28 +201,34 @@ where λ is the time loss weight (default: 1.0, configurable via `--time_loss_we
 
 ```
 mri/
-├── main.py           # Entry point with CLI arguments
-├── model.py          # Neural network architectures
-│                     # - SCAEBlock: Channel attention
-│                     # - SpatialAttention: Spatial attention
-│                     # - DropBlock2D: Regularization
-│                     # - EfficientNetB0_2Channel_Fusion: Feature extractor
-│                     # - MultiTaskModel: Main model with optional SNN head
-├── dataset.py        # Data loading and DICOM preprocessing
-├── train.py          # Training loop with multi-task loss
-├── evaluate.py       # Comprehensive evaluation metrics
-├── inference.py      # Inference script with visualization
-│                     # - StrokeInference: Inference class
-│                     # - Single slice and case-level inference
-│                     # - Visualization functions
-├── utils.py          # Utility functions (seed setting)
-├── output/           # Training outputs (created automatically)
-│   ├── model_best.pt              # Best model (highest val time AUC)
-│   ├── model_final.pt             # Final epoch model
-│   └── training_log_*.txt         # Detailed training logs
-└── inference_output/ # Inference outputs (created automatically)
-    ├── slice_inference.png        # Single slice visualization
-    └── case_inference.png         # Case-level visualization
+├── main.py                  # Entry point with CLI arguments
+├── model.py                 # Neural network architectures
+│                            # - SCAEBlock: Channel attention
+│                            # - SpatialAttention: Spatial attention
+│                            # - DropBlock2D: Regularization
+│                            # - EfficientNetB0_2Channel_Fusion: Feature extractor
+│                            # - MultiTaskModel: Main model with optional SNN head
+├── dataset.py               # Data loading and DICOM preprocessing
+├── train.py                 # Training loop with multi-task loss
+├── evaluate.py              # Comprehensive evaluation metrics
+├── inference.py             # Inference script with visualization
+│                            # - StrokeInference: Inference class
+│                            # - Single slice and case-level inference
+│                            # - Visualization functions
+├── gradio_interface.py      # Web-based UI for easy interaction
+│                            # - Real-time image preview
+│                            # - Interactive visualization
+│                            # - Supports local and public access
+├── utils.py                 # Utility functions (seed setting)
+├── UI.png                   # Screenshot of web interface
+├── output/                  # Training outputs (created automatically)
+│   ├── model_best.pt        # Best model (highest val time AUC)
+│   ├── model_final.pt       # Final epoch model
+│   └── training_log_*.txt   # Detailed training logs
+├── inference_output/        # Inference outputs (created automatically)
+│   ├── slice_inference.png  # Single slice visualization
+│   └── case_inference.png   # Case-level visualization
+└── app.log                  # Web app logs (when running in background)
 ```
 
 ## Installation
@@ -175,7 +243,7 @@ pip install -r requirements.txt
 **Option 2: Manual installation**
 ```bash
 pip install torch torchvision
-pip install pydicom numpy pillow scikit-learn matplotlib
+pip install pydicom numpy pillow scikit-learn matplotlib gradio
 pip install snntorch  # Optional: only needed if using --use_snn_head
 ```
 
@@ -188,7 +256,29 @@ pip install snntorch  # Optional: only needed if using --use_snn_head
 - Pillow (PIL)
 - scikit-learn (metrics)
 - matplotlib (visualization for inference)
+- gradio (web interface)
 - snntorch (optional, for SNN head)
+
+### Cloudflare Tunnel (Optional, for Public Access)
+
+Download the appropriate cloudflared binary for your platform:
+
+**Linux:**
+```bash
+wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+chmod +x cloudflared-linux-amd64
+```
+
+**macOS:**
+```bash
+wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64
+chmod +x cloudflared-darwin-amd64
+```
+
+**Windows:**
+```bash
+# Download from: https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe
+```
 
 ## Dataset Preparation
 
@@ -573,9 +663,67 @@ Cascaded classification matches clinical reasoning:
 2. If present, assess characteristics (timing)
 3. Inform treatment planning
 
+## Deployment Options
+
+### Local Deployment
+```bash
+python gradio_interface.py
+# Access at: http://127.0.0.1:7861
+```
+
+### Background Deployment (Linux/macOS)
+```bash
+# Start in background with logging
+nohup python gradio_interface.py > app.log 2>&1 &
+
+# Check logs
+tail -f app.log
+
+# Stop the app
+pkill -f gradio_interface.py
+```
+
+### Background Deployment (Windows)
+```bash
+# Start in background
+start /B python gradio_interface.py
+
+# Or use pythonw for no console window
+pythonw gradio_interface.py
+```
+
+### Public Access with Cloudflare Tunnel
+
+**Combined Deployment (Linux/macOS):**
+```bash
+# Start both app and tunnel
+nohup python gradio_interface.py > app.log 2>&1 &
+./cloudflare/cloudflared-linux-amd64 tunnel --url http://127.0.0.1:7861 &
+
+# Check the tunnel URL in terminal output
+# Example output: https://random-name-1234.trycloudflare.com
+```
+
+**Combined Deployment (Windows):**
+```bash
+# Start app in background
+start /B python gradio_interface.py
+
+# Start tunnel (will display public URL)
+./cloudflare/cloudflared-windows-amd64 tunnel --url http://127.0.0.1:7861
+```
+
+**Security Notes:**
+- Cloudflare Tunnel provides secure public access without port forwarding
+- URLs are randomly generated and can be regenerated anytime
+- No authentication is built-in; consider adding auth if needed for sensitive data
+- Tunnel automatically handles HTTPS encryption
+
 ## Future Enhancements
 
 Potential improvements:
+- [x] Web-based user interface with Gradio
+- [x] Real-time image preview and visualization
 - [ ] 3D volumetric processing instead of slice-by-slice
 - [ ] Multi-class time classification (finer time windows)
 - [ ] Attention visualization for interpretability
@@ -586,3 +734,5 @@ Potential improvements:
 - [ ] Integration with PACS systems
 - [ ] Real-time inference optimization
 - [ ] Explainable AI techniques (Grad-CAM, SHAP)
+- [ ] User authentication for public deployments
+- [ ] Batch processing interface
